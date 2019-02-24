@@ -5,12 +5,16 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import java.awt.Font;
+import java.awt.SystemColor;
+
 import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.UIManager;
 import java.awt.Color;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.JTable;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
@@ -20,6 +24,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.awt.event.ActionEvent;
+import javax.swing.JScrollPane;
+import java.awt.BorderLayout;
 
 public class PCustomer extends JPanel {
 	private JTextField tfName;
@@ -28,8 +34,9 @@ public class PCustomer extends JPanel {
 	private JTextField tfPhone;
 	private JTextField tfAddress;
 	private JTable table;
-	DefaultTableModel dtm;
+	private DefaultTableModel model;
 
+	
 	/**
 	 * Create the panel.
 	 */
@@ -43,56 +50,90 @@ public class PCustomer extends JPanel {
 		lblCustomerInformation.setBounds(105, 11, 254, 26);
 		add(lblCustomerInformation);
 		
-		JLabel lblName = new JLabel("Customer Name: ");
-		lblName.setBounds(10, 77, 99, 14);
-		add(lblName);
+		JPanel panel = new JPanel();
+		panel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Customer", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panel.setBounds(4, 30, 442, 194);
+		add(panel);
+		panel.setLayout(null);
+		
+		JLabel lblName = new JLabel("Name: ");
+		lblName.setBounds(23, 44, 99, 14);
+		panel.add(lblName);
 		
 		tfName = new JTextField();
-		tfName.setBounds(115, 76, 167, 20);
-		add(tfName);
+		tfName.setBounds(128, 43, 167, 20);
+		panel.add(tfName);
 		tfName.setColumns(10);
 		
-		JLabel lblId = new JLabel("Customer ID:");
-		lblId.setBounds(10, 49, 99, 14);
-		add(lblId);
+		JLabel lblId = new JLabel("ID:");
+		lblId.setBounds(23, 16, 99, 14);
+		panel.add(lblId);
 		
 		tfId = new JTextField();
-		tfId.setBounds(115, 46, 167, 20);
-		add(tfId);
+		tfId.setBounds(128, 13, 167, 20);
+		panel.add(tfId);
 		tfId.setColumns(10);
 		
 		JLabel lblSex = new JLabel("Sex:");
-		lblSex.setBounds(10, 111, 99, 14);
-		add(lblSex);
+		lblSex.setBounds(23, 78, 99, 14);
+		panel.add(lblSex);
 		
 		tfGender = new JTextField();
-		tfGender.setBounds(115, 106, 167, 20);
-		add(tfGender);
+		tfGender.setBounds(128, 73, 167, 20);
+		panel.add(tfGender);
 		tfGender.setColumns(10);
 		
 		JLabel lblPhone = new JLabel("Phone Number: ");
-		lblPhone.setBounds(10, 140, 99, 14);
-		add(lblPhone);
+		lblPhone.setBounds(23, 107, 99, 14);
+		panel.add(lblPhone);
 		
 		tfPhone = new JTextField();
-		tfPhone.setBounds(115, 136, 167, 20);
-		add(tfPhone);
+		tfPhone.setBounds(128, 103, 167, 20);
+		panel.add(tfPhone);
 		tfPhone.setColumns(10);
 		
 		JLabel lblAddress = new JLabel("Address:");
-		lblAddress.setBounds(10, 169, 99, 14);
-		add(lblAddress);
+		lblAddress.setBounds(23, 136, 99, 14);
+		panel.add(lblAddress);
 		
 		tfAddress = new JTextField();
-		tfAddress.setBounds(115, 166, 167, 20);
-		add(tfAddress);
+		tfAddress.setBounds(128, 133, 167, 20);
+		panel.add(tfAddress);
 		tfAddress.setColumns(10);
 		
-		table = new JTable();
-		table.setBounds(10, 235, 430, 135);
-		add(table);
-		
 		JButton btnAdd = new JButton("ADD");
+		btnAdd.setBounds(23, 164, 89, 23);
+		panel.add(btnAdd);
+		
+		JButton btnCancel = new JButton("CANCEL");
+		btnCancel.setBounds(316, 164, 89, 23);
+		panel.add(btnCancel);
+		
+		JButton btnEdit = new JButton("EDIT");
+		btnEdit.setBounds(118, 164, 89, 23);
+		panel.add(btnEdit);
+		
+		JButton btnDelete = new JButton("DELETE");
+		btnDelete.setBounds(217, 164, 89, 23);
+		panel.add(btnDelete);
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+try {
+					
+					theQuery("delete from customers where id = "+ tfId.getText());
+				
+				}catch(Exception ex) {}
+			}
+		});
+		btnEdit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					theQuery("update customers set name = '"+tfName.getText()
+					+"',gender='"+tfGender.getText()+"',phone='"+tfPhone.getText()+"',address='"+tfAddress.getText()+"' where id="+tfId.getText());
+				}catch(Exception ex) {}
+			
+			}
+		});
 		btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e){
 try {
@@ -110,39 +151,39 @@ try {
 			
 			}						
 		});
-				
-		btnAdd.setBounds(30, 201, 89, 23);
-		add(btnAdd);
+		model = new DefaultTableModel();	
+		model.addColumn("ID");
+		model.addColumn("FIRST NAME");
+		model.addColumn("LAST NAME");
+		model.addColumn("GENDER");
+		model.addColumn("EMAIL");
+		scrEmpTable.setViewportView(table);
+		pContainerListEmp.add(scpEmpReportTable, BorderLayout.CENTER);
+		scpEmpReportTable.setViewportView(pContainScrEmpTable);
 		
-		JButton btnCancel = new JButton("CANCEL");
-		btnCancel.setBounds(323, 201, 89, 23);
-		add(btnCancel);
+		JScrollPane scpCusReportTable = new JScrollPane();
+		scpCusReportTable.setBounds(4, 235, 442, 158);
+		add(scpCusReportTable);
 		
-		JButton btnEdit = new JButton("EDIT");
-		btnEdit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					theQuery("update customers set name = '"+tfName.getText()
-					+"',gender='"+tfGender.getText()+"',phone='"+tfPhone.getText()+"',address='"+tfAddress.getText()+"' where id="+tfId.getText());
-				}catch(Exception ex) {}
-			
-			}
-		});
-		btnEdit.setBounds(125, 201, 89, 23);
-		add(btnEdit);
+		JPanel pContainerScrCusTable = new JPanel();
+		scpCusReportTable.setColumnHeaderView(pContainerScrCusTable);
+		pContainerScrCusTable.setBorder(new LineBorder(new Color(0, 0, 0)));
+		pContainerScrCusTable.setLayout(new BorderLayout(0, 0));
 		
-		JButton btnDelete = new JButton("DELETE");
-		btnDelete.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-try {
-					
-					theQuery("delete from customers where id = "+ tfId.getText());
-				
-				}catch(Exception ex) {}
-			}
-		});
-		btnDelete.setBounds(224, 201, 89, 23);
-		add(btnDelete);
+		JScrollPane scpCustomerTable = new JScrollPane();
+		pContainerScrCusTable.add(scpCustomerTable);
+		
+		table = new JTable();
+		scpCustomerTable.setViewportView(table);
+		table.setRowMargin(0);
+		table.setRowHeight(25);
+		table.setSelectionBackground(new Color(51, 153, 204));
+		table.setGridColor(Color.BLACK);
+		table.setBackground(Color.WHITE);
+		table.setModel(model);
+		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		table.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		table.setBorder(new LineBorder(SystemColor.activeCaption, 2));
 		
 		
 	}
