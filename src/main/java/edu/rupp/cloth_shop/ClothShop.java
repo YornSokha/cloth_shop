@@ -3,18 +3,24 @@ package edu.rupp.cloth_shop;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JTextField;
 import javax.swing.JSplitPane;
 import java.awt.Color;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
+
 import java.awt.Font;
 import javax.swing.JTabbedPane;
 import javax.swing.tree.DefaultTreeModel;
@@ -27,6 +33,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 
 public class ClothShop extends JFrame {
@@ -55,6 +62,17 @@ public class ClothShop extends JFrame {
 	 */
 	public ClothShop() {
 		initConponent();
+		welcomeImage();
+	}
+
+	private void welcomeImage() {
+		this.addWindowListener(new WindowAdapter() {
+			public void windowOpened(WindowEvent we) {
+				PWelcome welcome = new PWelcome();
+                jtab.addTab("Welcome", welcome);
+                jtab.setSelectedComponent(welcome);
+			}
+		});
 		
 	}
 
