@@ -20,6 +20,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import edu.rupp.cloth_shop.customer.PCustomer;
 import edu.rupp.cloth_shop.sale.PSale;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -138,12 +139,8 @@ public class ClothShop extends JFrame {
 								jtab.setSelectedComponent(sale);
 							}
 							if(lastPath.equalsIgnoreCase("Customer")) {
-////								EmployeeList empList = new EmployeeList();
-////								empList.displayEmployeeInTable();
-////								JScrollPane jspEmpList = new JScrollPane(empList);
-////								jtap.addTab("New Employee", jspEmpList);
-////								jtap.setSelectedComponent(jspEmpList);
-//						
+								PCustomer customer = new PCustomer();
+								jtab.addTab("Customer", customer);
 							}else if(lastPath.equalsIgnoreCase("Product")) {
 						            PProduct product = new PProduct();
                                                             jtab.addTab("Product", product);
