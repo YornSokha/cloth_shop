@@ -20,6 +20,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import edu.rupp.cloth_shop.sale.PSale;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
@@ -131,7 +133,9 @@ public class ClothShop extends JFrame {
 							String lastPath = treePath.getLastPathComponent().toString();
 							System.out.println(lastPath);
 							if(lastPath.equalsIgnoreCase("Sale")) {
-								
+								PSale sale = new PSale();
+								jtab.addTab("Sale", sale);
+								jtab.setSelectedComponent(sale);
 							}
 							if(lastPath.equalsIgnoreCase("Customer")) {
 ////								EmployeeList empList = new EmployeeList();
