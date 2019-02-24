@@ -141,12 +141,18 @@ public class ClothShop extends JFrame {
 ////								jtap.setSelectedComponent(jspEmpList);
 //						
 							}else if(lastPath.equalsIgnoreCase("Product")) {
-////								
+						            PProduct product = new PProduct();
+                                                            jtab.addTab("Product", product);
+                                                            jtab.setSelectedComponent(product);
 //									
 							}else if(lastPath.equalsIgnoreCase("Category")) {
-//								
+                                                            PCategory category = new PCategory();
+                                                            jtab.addTab("Category", category);
+                                                            jtab.setSelectedComponent(category);
 							}else if(lastPath.equalsIgnoreCase("Seller")) {
-	
+                                                            PSeller seller = new PSeller();
+                                                            jtab.addTab("Seller", seller);
+                                                            jtab.setSelectedComponent(seller);
 							}else if(lastPath.equalsIgnoreCase("Report")){
 								
 							}
