@@ -20,53 +20,39 @@ public class Customer {
 		
 	}
 
-	public Customer(int id, String name) {
-		super();
-		this.name = name;
-		this.gender = gender;
-	}
 	
-	public Customer getCustomer() {
-		
-		return new Customer(id, name);
+	public String getName() {
+		return name;
 	}
-	
 	public Object[] getCustomerComBo() {
 		return new Object[] {id, name};
 	}
 
-//	@Override
-//	public String toString() {
-//		return "Customer [id=" + id + ", name=" + name + ", gender=" + gender + ", phone=" + phone + ", address="
-//				+ address + "]";
-//	}
 	
 	@Override
 	public String toString() {
-		return name;
+		return "Customer [id=" + id + ", name=" + name + ", gender=" + gender + ", phone=" + phone + ", address="
+				+ address + "]";
 	}
-	
-	class Item {
 
-		  private int id;
-		  private String description;
-		  public Item(int id, String description) {
-		    this.id = id;
-		    this.description = description;
-		  }
+	public int getId() {
+		return id;
+	}
 
-		  public int getId() {
-		    return id;
-		  }
+	public String getGender() {
+		return gender;
+	}
 
-		  public String getDescription() {
-		    return description;
-		  }
+	public String getPhone() {
+		return phone;
+	}
 
-		  @Override
-		  public String toString() {
-		    return description;
-		  }
-		}
+	public String getAddress() {
+		return address;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 	
 }

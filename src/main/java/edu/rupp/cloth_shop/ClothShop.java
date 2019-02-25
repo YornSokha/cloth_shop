@@ -61,6 +61,7 @@ public class ClothShop extends JFrame {
 	 * Create the frame.
 	 */
 	public ClothShop() {
+//		JFrame.setDefaultLookAndFeelDecorated(true);
 		initConponent();
 		welcomeImage();
 	}
