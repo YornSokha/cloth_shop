@@ -3,11 +3,11 @@ package edu.rupp.cloth_shop.logic;
 public class Sale {
 
 	private int id;
-	private int receiptNo;
+	private String receiptNo;
 	private int sellerId;
 	private int customerId;
 	private float total;
-	public Sale(int id, int receiptNo, int sellerId, int customerId, float total) {
+	public Sale(int id, String receiptNo, int sellerId, int customerId, float total) {
 		super();
 		this.id = id;
 		this.receiptNo = receiptNo;
@@ -18,7 +18,7 @@ public class Sale {
 	public int getId() {
 		return id;
 	}
-	public int getReceiptNo() {
+	public String getReceiptNo() {
 		return receiptNo;
 	}
 	public int getSellerId() {

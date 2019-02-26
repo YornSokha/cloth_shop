@@ -6,22 +6,17 @@ import javax.swing.JTextField;
 import edu.rupp.cloth_shop.backend.DB;
 import edu.rupp.cloth_shop.logic.Customer;
 import edu.rupp.cloth_shop.logic.Product;
-import edu.rupp.cloth_shop.logic.Sale;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-import java.awt.Component;
 import java.awt.Font;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
-import java.io.Console;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +33,7 @@ import java.awt.SystemColor;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 
+@SuppressWarnings("serial")
 public class PSale extends JPanel {
 	private JTextField txtQty;
 	private JComboBox<Customer> cboCustomer;
@@ -50,8 +46,9 @@ public class PSale extends JPanel {
 	private Customer customer;
 	private Product  product;
 	private float grandTotal;
+	private int saleId;
 	private HashMap<Integer,Product> boughtProducts;
-
+	
 	/**
 	 * Create the panel.
 	 */
@@ -87,7 +84,6 @@ public class PSale extends JPanel {
             }
             con.close();
         }catch (Exception e) {
-			// TODO: handle exception
         	e.printStackTrace();
 		}
 		
@@ -101,11 +97,11 @@ public class PSale extends JPanel {
 		add(lblSale);
 		
 		model = new DefaultTableModel();	
-		model.addColumn("PRODUCT");
-		model.addColumn("UNIT_PRICE");
-		model.addColumn("QUANTITY");
-		model.addColumn("DISCOUNT");
-		model.addColumn("TOTAL");
+		model.addColumn("Product");
+		model.addColumn("Unit Price");
+		model.addColumn("Qty");
+		model.addColumn("Discount");
+		model.addColumn("Total");
 		
 		JScrollPane scpTblSale = new JScrollPane();
 		scpTblSale.setBounds(43, 137, 553, 241);
@@ -160,7 +156,8 @@ public class PSale extends JPanel {
 		pSaleOperation.add(lblQty);
 		
 		boughtProducts = new HashMap<Integer, Product>();
-		
+
+		final List<Float> discounts = new ArrayList<Float>();
 		JButton btnAdd = new JButton("Add");
 		btnAdd.addActionListener(new ActionListener() {
 			Object[] columns = new Object[5];
@@ -205,6 +202,7 @@ public class PSale extends JPanel {
 				columns[2] = qty;
 				columns[3] = discount;
 				columns[4] = total;
+				//Check if product has already existed in the table then it'll update qty
 				if(boughtProducts.containsKey(id)) {
 					Product p = boughtProducts.get(id);
 					int oldQty = p.getQty();
@@ -216,9 +214,9 @@ public class PSale extends JPanel {
 					for (int i = rowCount - 1; i >= 0; i--) {
 					    model.removeRow(i);
 					}
-					
+					int index = 0;
 					for(Entry<Integer, Product> entry : boughtProducts.entrySet()) {
-					    int pId = entry.getKey();
+				
 					    Product pro = entry.getValue();
 						
 					    float tota = pro.getQty() * pro.getPrice() - (pro.getQty() * pro.getPrice()*discount/100);
@@ -229,6 +227,7 @@ public class PSale extends JPanel {
 						columns[3] = discount;
 						columns[4] = tota;
 					    model.addRow(columns);
+					    discounts.set(index++, discount);
 					    // do what you have to do here
 					    // In your case, another loop.
 					}
@@ -237,13 +236,13 @@ public class PSale extends JPanel {
 					int rowCount = model.getRowCount();
 					if(rowCount > 0)
 						model.removeRow(rowCount-1);
-					model.addRow(columns);	
+					model.addRow(columns);
+					discounts.add(discount);
 				}	
 				generateTotal();
 				clearControl();
 			}
 			private void generateTotal() {
-				// TODO Auto-generated method stub
 				columns[0] = "";
 			    columns[1] = "";
 				columns[2] = "";
@@ -255,7 +254,6 @@ public class PSale extends JPanel {
 				txtQty.setText("1");
 				txtDiscount.setText("0");
 				cboProduct.setSelectedItem("--Select Product--");
-//				cboCustomer.setSelectedItem("--Select Customer--");
 			}
 		});
 		btnAdd.setBounds(474, 53, 89, 23);
@@ -278,12 +276,14 @@ public class PSale extends JPanel {
 		});
 		btnSave.setBounds(507, 400, 89, 23);
 		add(btnSave);
+		
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				
+				String[] returnId = { "SALEID" };
 				int receiptNo = 1;
 				int sellerId = 1;
 				int customerId;
+				
 				if(customer == null)
 					customerId = 1;
 				else
@@ -294,43 +294,102 @@ public class PSale extends JPanel {
 		        	Statement st = con.createStatement();
 		            ResultSet res = st.executeQuery(sql);
 		            int id;
-		            float tot;
 		            if (res.next()) {
 		            	id = res.getInt(1);
 		            	receiptNo = id + 1;
-//		            	receiptNo = res.getInt(2);
-//		            	sellerId = res.getInt(3);
-//		            	customerId = res.getInt(4);
-//		            	tot = res.getFloat(5);
-//		            	Sale sale = new Sale(id, receiptNo, sellerId, customerId, tot);
-//		            	System.out.println(sale.toString());
 		            }
 		            con.close();
 		        }catch (Exception e) {
-					// TODO: handle exception
 		        	e.printStackTrace();
 				}
-			
 				
 				try{
 					Connection con = DB.getConnection();
-					String command = "insert into sales(receipt_no, seller_id, customer_id, total) values(?,?,?,?);";
-					PreparedStatement ps=con.prepareStatement(command);
+					String sql = "insert into sales(receipt_no, seller_id, customer_id, total) values(?,?,?,?);";
+					PreparedStatement ps=con.prepareStatement(sql, returnId);
 					ps.setString(1, String.format("%05d", receiptNo));
 				    ps.setInt(2, sellerId);
 				    ps.setInt(3, customerId);
 				    ps.setFloat(4, grandTotal);
 				    int i = ps.executeUpdate();
+				    int rowCount = model.getRowCount();
 				    if (i != 0) {
 				        JOptionPane.showMessageDialog(null, "Purchase success!", "Information", JOptionPane.INFORMATION_MESSAGE);
+				      //Remove rows one by one from the end of the table
+						for (int j = rowCount - 1; j >= 0; j--) {
+						    model.removeRow(j);
+						}										
+						
+						//clear total
+						grandTotal = 0.0F;
 				    } else {
 				        System.out.println("not Inserted");
 				    }
+				    
+				    //Get the last inserted id
+				    try (ResultSet rs = ps.getGeneratedKeys()) {
+				        if (rs.next()) {				            
+				            saleId = rs.getInt(1);
+				        }
+				        rs.close();
+
+				    }
 					con.close();
-					
 				}catch(Exception e)
 				{
 					System.out.println(e);
+				}
+				
+				//Get Product qty
+				
+				final List<Integer> productQties = new ArrayList<Integer>();
+				try {
+					Connection con = DB.getConnection();
+					Connection conProduct = DB.getConnection();
+					Connection conUpdateProductQty = DB.getConnection();
+					String command = "INSERT INTO sale_details(sale_id, product_id, qty, discount, cost, price) VALUE(?,?,?,?,?,?)";
+					PreparedStatement ps = con.prepareStatement(command);
+					String sql = "SELECT qty FROM products WHERE id = ?";
+					PreparedStatement psProduct = conProduct.prepareStatement(sql);
+					String sqlUpdateQty = "UPDATE products SET qty = ? WHERE id = ?";
+					PreparedStatement psUpdateQty = conUpdateProductQty.prepareStatement(sqlUpdateQty);
+					int index = 0;
+					for(Entry<Integer, Product> entry : boughtProducts.entrySet()) {
+					    int pId = entry.getKey();
+					    Product pro = entry.getValue();
+					    //Get old product qty
+					    psProduct.setInt(1, pId);					
+					    ResultSet rs = psProduct.executeQuery();
+					    while(rs.next()) {
+					    	productQties.add(rs.getInt(1));
+					    }
+					    
+					    //Update product qty
+					    psUpdateQty.setInt(1, productQties.get(index) - pro.getQty());
+					    psUpdateQty.setInt(2, pro.getId());
+					    psUpdateQty.executeUpdate();
+					    
+					    //Insert product to tbl_sale_details
+						ps.setInt(1,saleId);
+						ps.setInt(2, pro.getId());
+						ps.setInt(3, pro.getQty());
+						ps.setFloat(4, discounts.get(index++));
+						ps.setFloat(5, pro.getCost());						
+						ps.setFloat(6, pro.getPrice());
+						ps.executeUpdate();
+//					    System.out.println(pro.toString());
+					    // do what you have to do here
+					    // In your case, another loop.
+					}
+					
+					//remove previous products in list
+					boughtProducts = new HashMap<Integer, Product>();
+					
+					conProduct.close();
+					conUpdateProductQty.close();
+					con.close();
+				}catch(Exception e) {
+					e.printStackTrace();
 				}
 				
 			}
@@ -344,7 +403,9 @@ public class PSale extends JPanel {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private JComboBox<Product> createProCombo() {
+		@SuppressWarnings("rawtypes")
 		final JComboBox cbox = new JComboBox();
 		cbox.addItem("--Select Product--");
         for (String name : products.keySet()) {
@@ -364,7 +425,9 @@ public class PSale extends JPanel {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private JComboBox<Customer> createCusCombo() {
+		@SuppressWarnings("rawtypes")
 		final JComboBox cbox = new JComboBox();
 		cbox.addItem("--Select Customer--");
         for (String name : customers.keySet()) {
@@ -403,7 +466,6 @@ public class PSale extends JPanel {
             }
             con.close();
         }catch (Exception e) {
-			// TODO: handle exception
         	e.printStackTrace();
 		}
 

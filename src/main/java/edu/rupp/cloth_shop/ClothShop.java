@@ -9,6 +9,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -18,8 +21,11 @@ import java.awt.event.WindowEvent;
 import javax.swing.JTextField;
 import javax.swing.JSplitPane;
 import java.awt.Color;
+import java.awt.Component;
+
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
 import java.awt.Font;
 import javax.swing.JTabbedPane;
@@ -27,6 +33,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import edu.rupp.cloth_shop.customer.PCustomer;
+import edu.rupp.cloth_shop.report.PSaleDetailReport;
+import edu.rupp.cloth_shop.report.PSaleReport;
 import edu.rupp.cloth_shop.sale.PSale;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -64,6 +72,11 @@ public class ClothShop extends JFrame {
 //		JFrame.setDefaultLookAndFeelDecorated(true);
 		initConponent();
 		welcomeImage();
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 
 	private void welcomeImage() {
@@ -72,6 +85,20 @@ public class ClothShop extends JFrame {
 				PWelcome welcome = new PWelcome();
                 jtab.addTab("Welcome", welcome);
                 jtab.setSelectedComponent(welcome);
+                
+                PSale sale = new PSale();
+				jtab.addTab("Sale", sale);
+				jtab.setSelectedComponent(sale);
+				
+				PSaleReport sales = new PSaleReport();
+				jtab.addTab("Sale Report", sales);
+				jtab.setSelectedComponent(sales);
+				
+				PSaleDetailReport saleDetail = new PSaleDetailReport();
+				jtab.addTab("Sale Detail Report", saleDetail);
+				jtab.setSelectedComponent(saleDetail);
+				
+				jtab.setSelectedIndex(0);
 			}
 		});
 		
@@ -121,12 +148,15 @@ public class ClothShop extends JFrame {
 		tree.setModel(new DefaultTreeModel(
 			new DefaultMutableTreeNode("tree") {
 				{
-					add(new DefaultMutableTreeNode("sale"));
-					add(new DefaultMutableTreeNode("customer"));
-					add(new DefaultMutableTreeNode("product"));
-					add(new DefaultMutableTreeNode("category"));
-					add(new DefaultMutableTreeNode("seller"));
-					add(new DefaultMutableTreeNode("report"));
+					DefaultMutableTreeNode node_1;
+					add(new DefaultMutableTreeNode("Sale"));
+					add(new DefaultMutableTreeNode("Customer"));
+					add(new DefaultMutableTreeNode("Category"));
+					add(new DefaultMutableTreeNode("Seller"));
+					node_1 = new DefaultMutableTreeNode("report");
+						node_1.add(new DefaultMutableTreeNode("Sales"));
+						node_1.add(new DefaultMutableTreeNode("Sale Details"));
+					add(node_1);
 				}
 			}
 		));
@@ -135,6 +165,20 @@ public class ClothShop extends JFrame {
 		splitPane.setLeftComponent(tree);
 		
 		jtab = new JTabbedPane(JTabbedPane.TOP);
+		jtab.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				int selectedIndex = jtab.getSelectedIndex();
+				if(selectedIndex == 2) {
+					jtab.setComponentAt(selectedIndex, new PSaleReport());
+				}else if(selectedIndex == 3) {
+					jtab.setComponentAt(selectedIndex, new PSaleDetailReport());
+				}
+			}
+		});
+		
 		splitPane.setRightComponent(jtab);
 		
 		//double click on tree event
@@ -150,40 +194,51 @@ public class ClothShop extends JFrame {
 							//Get for whole tree path
 							TreePath treePath = tree.getPathForLocation(e.getX(), e.getY());
 							//Get last path of tree
-							String lastPath = treePath.getLastPathComponent().toString();
-							System.out.println(lastPath);
+							String lastPath = treePath.getLastPathComponent().toString();							
 							if(lastPath.equalsIgnoreCase("Sale")) {
-								PSale sale = new PSale();
-								jtab.addTab("Sale", sale);
-								jtab.setSelectedComponent(sale);
+//								PSale sale = new PSale();
+//								jtab.addTab("Sale", sale);
+//								jtab.setSelectedComponent(sale);
+//								jtab.setComponentAt(1, new PSale());
+								jtab.setSelectedIndex(1);
 							}
 							if(lastPath.equalsIgnoreCase("Customer")) {
+								
 								PCustomer customer = new PCustomer();
 								jtab.addTab("Customer", customer);
+								jtab.setSelectedComponent(customer);
 							}else if(lastPath.equalsIgnoreCase("Product")) {
-						            PProduct product = new PProduct();
-                                                            jtab.addTab("Product", product);
-                                                            jtab.setSelectedComponent(product);
-//									
-							}else if(lastPath.equalsIgnoreCase("Category")) {
-                                                            PCategory category = new PCategory();
-                                                            jtab.addTab("Category", category);
-                                                            jtab.setSelectedComponent(category);
-							}else if(lastPath.equalsIgnoreCase("Seller")) {
-                                                            PSeller seller = new PSeller();
-                                                            jtab.addTab("Seller", seller);
-                                                            jtab.setSelectedComponent(seller);
-							}else if(lastPath.equalsIgnoreCase("Report")){
 								
+						            PProduct product = new PProduct();
+                                    jtab.addTab("Product", product);
+                                    jtab.setSelectedComponent(product);								
+							}else if(lastPath.equalsIgnoreCase("Category")) {
+								
+                                    PCategory category = new PCategory();
+                                    jtab.addTab("Category", category);
+                                    jtab.setSelectedComponent(category);
+							}else if(lastPath.equalsIgnoreCase("Seller")) {
+								
+                                    PSeller seller = new PSeller();
+                                    jtab.addTab("Seller", seller);
+                                    jtab.setSelectedComponent(seller);
+							}else if(lastPath.equalsIgnoreCase("Sales")){
+								
+//								PSaleReport sales = new PSaleReport();
+//								jtab.addTab("Sale Report", sales);
+//								jtab.setSelectedComponent(sales);
+								jtab.setComponentAt(2, new PSaleReport());
+								jtab.setSelectedIndex(2);
 							}
-//							else{
-//								
-//								JScrollPane jspTaxCal = new JScrollPane(new TaxCalculator());
-//								//ImageIcon iconTaxCal = new ImageIcon("resource/1.jpg");
-//								jtap.addTab("Tax Calculator",  jspTaxCal);
-//								jtap.setSelectedComponent(jspTaxCal);
-//							
-//							}
+							else if(lastPath.equalsIgnoreCase("Sale Details")){
+								
+//								PSaleDetailReport saleDetail = new PSaleDetailReport();
+//								jtab.addTab("Sale Detail Report", saleDetail);
+//								jtab.setSelectedComponent(saleDetail);
+								jtab.setComponentAt(3, new PSaleDetailReport());
+								jtab.setSelectedIndex(3);
+							
+							}
 							
 						}
 					}
