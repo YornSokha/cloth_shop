@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.awt.event.ActionEvent;
 import javax.swing.JTable;
 import java.awt.Color;
@@ -33,6 +34,7 @@ import java.awt.SystemColor;
 import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 
+// TODO login error in SaleDetial Report
 @SuppressWarnings("serial")
 public class PSale extends JPanel {
 	private JTextField txtQty;
@@ -47,8 +49,9 @@ public class PSale extends JPanel {
 	private Product  product;
 	private float grandTotal;
 	private int saleId;
-	private HashMap<Integer,Product> boughtProducts;
-	
+	private Map<Integer,Product> boughtProducts;
+	private Map<Integer, Float> totalRows;
+	private Map<Integer,Float> discounts;
 	/**
 	 * Create the panel.
 	 */
@@ -62,7 +65,7 @@ public class PSale extends JPanel {
 	
 
 	private void getProducts() {
-		products = new HashMap<String, Product>();
+		products = new TreeMap<String, Product>();
         try {
         	Connection con = DB.getConnection();
         	String sql = "SELECT * FROM products";
@@ -91,10 +94,6 @@ public class PSale extends JPanel {
 
 
 	private void initComponent() {
-		JLabel lblSale = new JLabel("Sale");
-		lblSale.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblSale.setBounds(43, 11, 46, 14);
-		add(lblSale);
 		
 		model = new DefaultTableModel();	
 		model.addColumn("Product");
@@ -104,7 +103,7 @@ public class PSale extends JPanel {
 		model.addColumn("Total");
 		
 		JScrollPane scpTblSale = new JScrollPane();
-		scpTblSale.setBounds(43, 137, 553, 241);
+		scpTblSale.setBounds(23, 190, 1128, 241);
 		add(scpTblSale);
 		
 		tblSale = new JTable() {
@@ -125,40 +124,53 @@ public class PSale extends JPanel {
 		tblSale.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		
 		JPanel pSaleOperation = new JPanel();
-		pSaleOperation.setBounds(36, 11, 572, 81);
+		pSaleOperation.setBounds(23, 57, 1128, 105);
 		add(pSaleOperation);
 		pSaleOperation.setLayout(null);
 		cboCustomer = createCusCombo();
-		cboCustomer.setBounds(10, 54, 156, 20);
+		cboCustomer.setBounds(0, 47, 156, 35);
 		pSaleOperation.add(cboCustomer);
-		cboCustomer.setMaximumRowCount(3);
+		cboCustomer.setMaximumRowCount(6);
 		
 		JLabel lblCustomer = new JLabel("Customer");
-		lblCustomer.setBounds(10, 29, 86, 14);
+		lblCustomer.setBounds(0, 29, 86, 14);
 		pSaleOperation.add(lblCustomer);
 		
 		JLabel lblProduct = new JLabel("Product");
-		lblProduct.setBounds(176, 29, 93, 14);
+		lblProduct.setBounds(166, 29, 93, 14);
 		pSaleOperation.add(lblProduct);
 		
 		cboProduct = createProCombo();
-		cboProduct.setBounds(176, 54, 150, 20);
+		cboProduct.setBounds(166, 47, 150, 35);
 		pSaleOperation.add(cboProduct);
+		cboProduct.setMaximumRowCount(6);
 		
 		txtQty = new JTextField();
 		txtQty.setText("1");
-		txtQty.setBounds(336, 54, 59, 20);
+		txtQty.setBounds(326, 47, 72, 35);
 		pSaleOperation.add(txtQty);
 		txtQty.setColumns(10);
 		
 		JLabel lblQty = new JLabel("Qty");
-		lblQty.setBounds(337, 29, 46, 14);
+		lblQty.setBounds(326, 29, 46, 14);
 		pSaleOperation.add(lblQty);
 		
-		boughtProducts = new HashMap<Integer, Product>();
-
-		final List<Float> discounts = new ArrayList<Float>();
+		boughtProducts = new TreeMap<Integer, Product>();
+		discounts = new HashMap<Integer,Float>();
+		totalRows = new HashMap<Integer, Float>();
+		txtDiscount = new JTextField();
+		txtDiscount.setText("0");
+		txtDiscount.setColumns(10);
+		txtDiscount.setBounds(408, 47, 72, 35);
+		pSaleOperation.add(txtDiscount);
+		
+		JLabel lblDiscount = new JLabel("Discount");
+		lblDiscount.setBounds(409, 29, 71, 14);
+		pSaleOperation.add(lblDiscount);
+		
 		JButton btnAdd = new JButton("Add");
+		btnAdd.setBounds(490, 47, 89, 35);
+		pSaleOperation.add(btnAdd);
 		btnAdd.addActionListener(new ActionListener() {
 			Object[] columns = new Object[5];
 			public void actionPerformed(ActionEvent arg0) {
@@ -195,7 +207,8 @@ public class PSale extends JPanel {
 				code = product.getCode();
 				cost = product.getCost();
 				price = product.getPrice();
-				updateTotal(total);
+				totalRows.put(id,  total);
+				updateTotal();
 				
 				columns[0] = productName;
 				columns[1] = price;
@@ -206,7 +219,6 @@ public class PSale extends JPanel {
 				if(boughtProducts.containsKey(id)) {
 					Product p = boughtProducts.get(id);
 					int oldQty = p.getQty();
-					System.out.println(oldQty);
 					boughtProducts.put(id, new Product(id, categoryId, code, productName, cost, price, qty + oldQty));
 					
 					int rowCount = model.getRowCount();
@@ -214,20 +226,23 @@ public class PSale extends JPanel {
 					for (int i = rowCount - 1; i >= 0; i--) {
 					    model.removeRow(i);
 					}
-					int index = 0;
+					float tota;
 					for(Entry<Integer, Product> entry : boughtProducts.entrySet()) {
-				
 					    Product pro = entry.getValue();
-						
-					    float tota = pro.getQty() * pro.getPrice() - (pro.getQty() * pro.getPrice()*discount/100);
-					    
-					    columns[0] = pro.getName();
+						if(pro.getId() == id) {
+							tota = pro.getQty() * pro.getPrice() - (pro.getQty() * pro.getPrice()*discount/100);
+						    discounts.put(pro.getId(), discount);
+							columns[3] = discount;	
+						}else {
+							tota = pro.getQty() * pro.getPrice() - (pro.getQty() * pro.getPrice()*discounts.get(pro.getId())/100);
+							columns[3] = discounts.get(pro.getId());
+						}
+						columns[0] = pro.getName();
 					    columns[1] = pro.getPrice();
 						columns[2] = pro.getQty();
-						columns[3] = discount;
 						columns[4] = tota;
 					    model.addRow(columns);
-					    discounts.set(index++, discount);
+					    
 					    // do what you have to do here
 					    // In your case, another loop.
 					}
@@ -237,7 +252,7 @@ public class PSale extends JPanel {
 					if(rowCount > 0)
 						model.removeRow(rowCount-1);
 					model.addRow(columns);
-					discounts.add(discount);
+					discounts.put(id, discount);
 				}	
 				generateTotal();
 				clearControl();
@@ -256,26 +271,18 @@ public class PSale extends JPanel {
 				cboProduct.setSelectedItem("--Select Product--");
 			}
 		});
-		btnAdd.setBounds(474, 53, 89, 23);
-		pSaleOperation.add(btnAdd);
-		
-		txtDiscount = new JTextField();
-		txtDiscount.setText("0");
-		txtDiscount.setColumns(10);
-		txtDiscount.setBounds(405, 54, 59, 20);
-		pSaleOperation.add(txtDiscount);
-		
-		JLabel lblDiscount = new JLabel("Discount");
-		lblDiscount.setBounds(406, 29, 71, 14);
-		pSaleOperation.add(lblDiscount);
 		
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
 		});
-		btnSave.setBounds(507, 400, 89, 23);
+		btnSave.setBounds(1060, 457, 89, 35);
 		add(btnSave);
+		JLabel lblSale = new JLabel("Sale");
+		lblSale.setBounds(23, 0, 96, 58);
+		add(lblSale);
+		lblSale.setFont(new Font("Tahoma", Font.PLAIN, 32));
 		
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -373,7 +380,7 @@ public class PSale extends JPanel {
 						ps.setInt(1,saleId);
 						ps.setInt(2, pro.getId());
 						ps.setInt(3, pro.getQty());
-						ps.setFloat(4, discounts.get(index++));
+						ps.setFloat(4, discounts.get(pro.getId()));
 						ps.setFloat(5, pro.getCost());						
 						ps.setFloat(6, pro.getPrice());
 						ps.executeUpdate();
@@ -384,7 +391,9 @@ public class PSale extends JPanel {
 					
 					//remove previous products in list
 					boughtProducts = new HashMap<Integer, Product>();
-					
+					discounts = new HashMap<Integer, Float>();
+					totalRows = new HashMap<Integer, Float>();
+					cboCustomer.setSelectedIndex(0);
 					conProduct.close();
 					conUpdateProductQty.close();
 					con.close();
@@ -397,8 +406,11 @@ public class PSale extends JPanel {
 		
 	}
 
-	protected void updateTotal(float total) {
-		grandTotal += total;
+	protected void updateTotal() {
+		grandTotal = 0;
+		for(Entry<Integer,Float> entry : totalRows.entrySet()) {
+			grandTotal += entry.getValue();
+		}
 		
 	}
 
@@ -447,7 +459,7 @@ public class PSale extends JPanel {
 	}
 
 	private void getCustomers() {
-        customers = new HashMap<String, Customer>();
+        customers = new TreeMap<String, Customer>();
         try {
         	Connection con = DB.getConnection();
         	String sql = "SELECT * FROM customers";

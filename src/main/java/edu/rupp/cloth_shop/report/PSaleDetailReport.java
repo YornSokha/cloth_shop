@@ -10,10 +10,14 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import edu.rupp.cloth_shop.backend.DB;
+import edu.rupp.cloth_shop.export.DbToSaleDetailsCSV;
 import edu.rupp.cloth_shop.logic.Sale;
 import edu.rupp.cloth_shop.logic.SaleDetail;
 
 import javax.swing.JScrollPane;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
 public class PSaleDetailReport extends JPanel {
@@ -52,6 +56,15 @@ public class PSaleDetailReport extends JPanel {
 		getRows();
 		table.setModel(model);
 		scrollPane.setViewportView(table);
+		
+		JButton btnExport = new JButton("Export");
+		btnExport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new DbToSaleDetailsCSV();
+			}
+		});
+		btnExport.setBounds(1061, 44, 91, 33);
+		add(btnExport);
 
 	}
 	private void getRows() {
