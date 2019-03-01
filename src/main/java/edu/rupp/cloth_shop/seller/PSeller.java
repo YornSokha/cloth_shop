@@ -1,4 +1,4 @@
-package edu.rupp.cloth_shop.customer;
+package edu.rupp.cloth_shop.seller;
 
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -15,9 +15,9 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import edu.rupp.cloth_shop.backend.DB;
-import edu.rupp.cloth_shop.export.DbToCustomerCSV;
+import edu.rupp.cloth_shop.export.DbToSellerCSV;
 import edu.rupp.cloth_shop.export.DbToSaleDetailsCSV;
-import edu.rupp.cloth_shop.logic.Customer;
+import edu.rupp.cloth_shop.logic.Seller;
 import edu.rupp.cloth_shop.logic.Product;
 
 import javax.swing.UIManager;
@@ -27,6 +27,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.JTable;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.Console;
 import java.util.Map.Entry;
 import java.sql.Connection;
@@ -40,12 +42,10 @@ import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-public class PCustomer extends JPanel {
+public class PSeller extends JPanel {
 	private JTextField txtId;
-	private JTextField txtName;
+	private JTextField txtLastName;
 	private JTextField txtPhone;
 	private JTextField txtGender;
 	private JTextField txtAddress;
@@ -55,54 +55,57 @@ public class PCustomer extends JPanel {
 	private JButton btnClear;
 	private JTable table;
 	private DefaultTableModel model;
-	private TreeMap<Integer, Customer> customers;
-	private TreeMap<Integer, Customer> searchCustomers;
-	private static Object[] columns = new Object[5];
+	private TreeMap<Integer, Seller> Sellers;
+	private TreeMap<Integer, Seller> searchSellers;
+	private static Object[] columns = new Object[6];
 	private static int seletedRow = -1;
 	private JButton btnSearch;
+	private JLabel lblFirstName;
+	private JTextField txtFirstName;
 	/**
 	 * Create the panel.
 	 */
-	public PCustomer() {
-		setBackground(Color.CYAN);
+	public PSeller() {
 		setLayout(null);
 		initComponent();
-		getCustomers();
-		addCustomerToTable(customers);
+		getSellers();
+		addSellerToTable(Sellers);
 	}
 
-	private void addCustomerToTable(TreeMap<Integer, Customer> customers) {
+	private void addSellerToTable(TreeMap<Integer, Seller> Sellers) {
 		model.setRowCount(0);
 		int index = 0;
-		for(Entry<Integer, Customer> entry : customers.entrySet()) {
-			Customer customer = entry.getValue();
+		for(Entry<Integer, Seller> entry : Sellers.entrySet()) {
+			Seller Seller = entry.getValue();
 			columns[0] = ++index;
-			columns[1] = customer.getName();
-			columns[2] = customer.getGender();
-			columns[3] = customer.getPhone();
-			columns[4] = customer.getAddress();
+			columns[1] = Seller.getFirstName();
+			columns[2] = Seller.getLastName();
+			columns[3] = Seller.getGender();
+			columns[4] = Seller.getPhone();
+			columns[5] = Seller.getAddress();
 			model.addRow(columns);
 		}
 		
 	}
 
-	private void getCustomers() {
-        customers = new TreeMap<Integer, Customer>();
+	private void getSellers() {
+        Sellers = new TreeMap<Integer, Seller>();
         try {
         	Connection con = DB.getConnection();
-        	String sql = "SELECT * FROM customers";
+        	String sql = "SELECT * FROM Sellers";
         	Statement st = con.createStatement();
             ResultSet res = st.executeQuery(sql);
             int id;
-            String name, gender, phone, address;
+            String firstName, lastName, gender, phone, address;
             while (res.next()) {
             	id = res.getInt(1);
-            	name = res.getString(2);
-            	gender = res.getString(3);
-            	phone = res.getString(4);
-            	address = res.getString(5);
-            	Customer cus = new Customer(id, name, gender, phone, address);
-            	customers.put(cus.getId(), cus);
+            	firstName = res.getString(2);
+            	lastName = res.getString(3);
+            	gender = res.getString(4);
+            	phone = res.getString(5);
+            	address = res.getString(6);
+            	Seller seller = new Seller(id, firstName, lastName, gender, phone, address);
+            	Sellers.put(seller.getId(), seller);
             }
             con.close();
         }catch (Exception e) {
@@ -115,7 +118,7 @@ public class PCustomer extends JPanel {
 		JPanel panel = new JPanel();
 		panel.setBounds(114, 53, 584, 192);
 		add(panel);
-		panel.setLayout(new GridLayout(5, 2, 10, 20));
+		panel.setLayout(new GridLayout(6, 2, 10, 10));
 		
 		JLabel lblId = new JLabel("ID");
 		panel.add(lblId);
@@ -125,12 +128,19 @@ public class PCustomer extends JPanel {
 		panel.add(txtId);
 		txtId.setColumns(10);
 		
-		JLabel lblName = new JLabel("Name");
-		panel.add(lblName);
+		lblFirstName = new JLabel("First Name");
+		panel.add(lblFirstName);
 		
-		txtName = new JTextField();
-		panel.add(txtName);
-		txtName.setColumns(10);
+		txtFirstName = new JTextField();
+		txtFirstName.setColumns(10);
+		panel.add(txtFirstName);
+		
+		JLabel lblLastName = new JLabel("Last Name");
+		panel.add(lblLastName);
+		
+		txtLastName = new JTextField();
+		panel.add(txtLastName);
+		txtLastName.setColumns(10);
 		
 		JLabel lblGender = new JLabel("Gender");
 		panel.add(lblGender);
@@ -162,21 +172,30 @@ public class PCustomer extends JPanel {
 				return false;
 			}
 		};
+		model = new DefaultTableModel();
+		model.addColumn("No");
+		model.addColumn("First Name");
+		model.addColumn("Last Name");
+		model.addColumn("Gender");
+		model.addColumn("Phone");
+		model.addColumn("Address");
+		table.setModel(model);
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				seletedRow = table.getSelectedRow();
-	        	String name = (String)table.getValueAt(seletedRow, 1);
-	        	String gender = (String)table.getValueAt(seletedRow, 2);
-	        	String phone = (String)table.getValueAt(seletedRow, 3);
-	        	String address = (String)table.getValueAt(seletedRow, 4);
+	        	String firstName = (String)table.getValueAt(seletedRow, 1);
+	        	String lastName = (String)table.getValueAt(seletedRow, 2);
+	        	String gender = (String)table.getValueAt(seletedRow, 3);
+	        	String phone = (String)table.getValueAt(seletedRow, 4);
+	        	String address = (String)table.getValueAt(seletedRow, 5);
 	        	int id = 0;
 	        	try {
 	        		Connection con = DB.getConnection();
-	        		String sql = "SELECT id FROM customers WHERE name = ? AND phone = ?";
+	        		String sql = "SELECT id FROM Sellers WHERE first_name = ? AND last_name = ?";
 	        		PreparedStatement ps = con.prepareStatement(sql);
-	        		ps.setString(1, name);
-	        		ps.setString(2, phone);
+	        		ps.setString(1, firstName);
+	        		ps.setString(2, lastName);
 	        		ResultSet rs = ps.executeQuery();
 	        		if(rs.next()) {
 	        			id = rs.getInt(1);
@@ -192,62 +211,13 @@ public class PCustomer extends JPanel {
 	        	btnDelete.setEnabled(true);
 	        	btnUpdate.setEnabled(true);
 	        	txtId.setText("" + id);
-	        	txtName.setText(name);
+	        	txtFirstName.setText(firstName);
+	        	txtLastName.setText(lastName);
 	        	txtGender.setText(gender);
 	        	txtPhone.setText(phone);
-	        	txtAddress.setText(address);
+	        	txtAddress.setText(address);		
 			}
 		});
-		model = new DefaultTableModel();
-		model.addColumn("No");
-		model.addColumn("Name");
-		model.addColumn("Gender");
-		model.addColumn("Phone");
-		model.addColumn("Address");
-		table.setModel(model);
-
-//		table.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-//	        public void valueChanged(ListSelectionEvent event) {
-//	        	if(!isDelete) {
-//	        		seletedRow = table.getSelectedRow();
-//		        	String name = (String)table.getValueAt(seletedRow, 1);
-//		        	String gender = (String)table.getValueAt(seletedRow, 2);
-//		        	String phone = (String)table.getValueAt(seletedRow, 3);
-//		        	String address = (String)table.getValueAt(seletedRow, 4);
-//		        	int id = 0;
-//		        	try {
-//		        		Connection con = DB.getConnection();
-//		        		String sql = "SELECT id FROM customers WHERE name = ? AND phone = ?";
-//		        		PreparedStatement ps = con.prepareStatement(sql);
-//		        		ps.setString(1, name);
-//		        		ps.setString(2, phone);
-//		        		ResultSet rs = ps.executeQuery();
-//		        		if(rs.next()) {
-//		        			id = rs.getInt(1);
-//		        		}
-//		        		rs.close();
-//		        		con.close();
-//		        	}catch (Exception e) {
-//						// TODO: handle exception
-//		        		e.printStackTrace();
-//					}
-//		        	
-//		        	btnAdd.setEnabled(false);
-//		        	btnDelete.setEnabled(true);
-//		        	btnUpdate.setEnabled(true);
-//		        	txtId.setText("" + id);
-//		        	txtName.setText(name);
-//		        	txtGender.setText(gender);
-//		        	txtPhone.setText(phone);
-//		        	txtAddress.setText(address);		
-//	        	}else {
-//	        		clearControls();	        		
-//	        		isDelete = !isDelete;
-//	        	}
-//	        }
-//	        
-//		});
-		
 		scrollPane.setViewportView(table);
 		
 		JPanel pButton = new JPanel();
@@ -259,12 +229,13 @@ public class PCustomer extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String[] returnId = { "CUSTOMERID" };
-				String name = txtName.getText();
+				String[] returnId = { "SellerID" };
+				String firstName = txtFirstName.getText();
+				String lastName = txtLastName.getText();
 				String gender = txtGender.getText();
 				String phone = txtPhone.getText();
 				String address = txtAddress.getText();
-				if(name.equals("") || gender.equals("")) {
+				if(firstName.equals("") || lastName.equals("") || gender.equals("")) {
 					JOptionPane.showMessageDialog(null, "Name and gender must have value!", "Information", JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
@@ -272,21 +243,24 @@ public class PCustomer extends JPanel {
 				int id = 0;
 				try {
 					Connection con = DB.getConnection();
-					String sql = "INSERT INTO customers(name, gender, phone, address) VALUES(?,?,?,?)";
+					String sql = "INSERT INTO Sellers(first_name, last_name, gender, phone, address) VALUES(?,?,?,?,?)";
 					PreparedStatement ps = con.prepareStatement(sql, returnId);
-					ps.setString(1, name);
-					ps.setString(2, gender);
-					ps.setString(3, phone);
-					ps.setString(4, address);
+					ps.setString(1, firstName);
+					ps.setString(2, lastName);
+					ps.setString(3, gender);
+					ps.setString(4, phone);
+					ps.setString(5, address);
 					int i = ps.executeUpdate();
 					if (i != 0) {
-				        JOptionPane.showMessageDialog(null, "Purchase success!", "Information", JOptionPane.INFORMATION_MESSAGE);
+				        JOptionPane.showMessageDialog(null, "Seller has been added successfully!", "Information", JOptionPane.INFORMATION_MESSAGE);
 				        int rowCount = model.getRowCount();
 				        columns[0] = rowCount + 1;
-						columns[1] = name;
-						columns[2] = gender;
-						columns[3] = phone;
-						columns[4] = address;																							
+						columns[1] = firstName;
+						columns[2] = lastName;
+						columns[3] = gender;
+						columns[4] = phone;
+						columns[5] = address;
+																						
 				    } else {
 				        System.out.println("not Inserted");
 				    }
@@ -294,8 +268,8 @@ public class PCustomer extends JPanel {
 				    try (ResultSet rs = ps.getGeneratedKeys()) {
 				        if (rs.next()) {				            
 				            id = rs.getInt(1);
-				            customers.put(id, new Customer(id, name, gender, phone, address));
-				            btnClear.doClick();
+				            Sellers.put(id, new Seller(id, firstName, lastName, gender, phone, address));
+				            btnClear.doClick();	
 				        }
 				        rs.close();
 				    }
@@ -318,27 +292,30 @@ public class PCustomer extends JPanel {
 				Connection con = DB.getConnection();
 				try {
 					con = DB.getConnection();
-					String sql = "UPDATE customers SET name = ?, gender = ?, phone = ?, address = ? WHERE id = ?";
+					String sql = "UPDATE Sellers SET first_name = ?, last_name = ?, gender = ?, phone = ?, address = ? WHERE id = ?";
 					PreparedStatement ps = con.prepareStatement(sql);
 					int id = Integer.parseInt(txtId.getText());
-					String name = txtName.getText();
+					String firstName = txtFirstName.getText();
+					String lastName = txtLastName.getText();
 					String gender = txtGender.getText();
 					String phone = txtPhone.getText();
 					String address = txtAddress.getText();
-					ps.setString(1, name);
-					ps.setString(2, gender);
-					ps.setString(3, phone);
-					ps.setString(4, address);
-					ps.setInt(5, id);
+					ps.setString(1, firstName);
+					ps.setString(2, lastName);
+					ps.setString(3, gender);
+					ps.setString(4, phone);
+					ps.setString(5, address);
+					ps.setInt(6, id);
 					int i = ps.executeUpdate();
 					if(i != 0) {
 						 JOptionPane.showMessageDialog(null, "Update success!", "Information", JOptionPane.INFORMATION_MESSAGE);
-						 customers.put(id, new Customer(id, name, gender, phone, address));
+						 Sellers.put(id, new Seller(id, firstName, lastName, gender, phone, address));
 						 columns[0] = seletedRow + 1;
-						 columns[1] = name;
-						 columns[2] = gender;
-						 columns[3] = phone;
-						 columns[4] = address;
+						 columns[1] = firstName;
+						 columns[2] = lastName;
+						 columns[3] = gender;
+						 columns[4] = phone;
+						 columns[5] = address;
 						 for(int j = 0; j < model.getColumnCount(); j++) {
 							 model.setValueAt(columns[j], seletedRow, j);
 						 }
@@ -355,31 +332,33 @@ public class PCustomer extends JPanel {
 		btnSearch = new JButton("Search");
 		btnSearch.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				searchCustomers = new TreeMap<Integer, Customer>();
+				searchSellers = new TreeMap<Integer, Seller>();
 				String search = JOptionPane.showInputDialog("Enter keyword:");
 				if(search.equals(""))
 					return;
-				String sql =  "SELECT * FROM customers WHERE name LIKE ?";
+				String sql =  "SELECT * FROM Sellers WHERE first_name LIKE ? OR last_name LIKE ?";
 				try {
 					Connection con = DB.getConnection();
 					PreparedStatement ps = null;
 					ps = con.prepareStatement(sql);
-					ps.setString(1, "%" + search + "%");					
+					ps.setString(1, "%" + search + "%");				
+					ps.setString(2, "%" + search + "%");
 					
 					ResultSet rs = ps.executeQuery();
 					int id;
-					String name, gender, phone, address;
+					String firstName, lastName, gender, phone, address;
 					int index = 0;
 					model.setRowCount(0);
 					while(rs.next()) {
 						id = rs.getInt(1);
-						name = rs.getString(2);
-						gender = rs.getString(3);
-						phone = rs.getString(4);
-						address = rs.getString(5);
-						searchCustomers.put(id, new Customer(id, name, gender, phone, address));
+						firstName = rs.getString(2);
+						lastName = rs.getString(3);
+						gender = rs.getString(4);
+						phone = rs.getString(5);
+						address = rs.getString(6);
+						searchSellers.put(id, new Seller(id, firstName, lastName, gender, phone, address));
 					}
-					addCustomerToTable(searchCustomers);
+					addSellerToTable(searchSellers);
 					rs.close();
 					con.close();
 				}catch (Exception e2) {
@@ -403,7 +382,7 @@ public class PCustomer extends JPanel {
 					return;
 				try {
 					Connection con = DB.getConnection();
-					String sql = "DELETE FROM customers WHERE id = ?";
+					String sql = "DELETE FROM Sellers WHERE id = ?";
 					PreparedStatement ps = con.prepareStatement(sql);
 					int id = Integer.parseInt(txtId.getText());
 					ps.setInt(1, id);
@@ -411,7 +390,7 @@ public class PCustomer extends JPanel {
 					if(j != 0) {
 						JOptionPane.showMessageDialog(null, "Delete success!", "Information", JOptionPane.INFORMATION_MESSAGE);
 						//Remove rows one by one from the end of the table
-						customers.remove(id);
+						Sellers.remove(id);
 						clearRow();
 					}else {
 						JOptionPane.showMessageDialog(null, "Delete failed!", "Information", JOptionPane.WARNING_MESSAGE);
@@ -425,7 +404,7 @@ public class PCustomer extends JPanel {
 
 			private void clearRow() {
 				model.setRowCount(0);
-				addCustomerToTable(customers);
+				addSellerToTable(Sellers);
 				btnClear.doClick();
 			}
 		});
@@ -436,11 +415,11 @@ public class PCustomer extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				clearControls();
-				addCustomerToTable(customers);
+				addSellerToTable(Sellers);
 				btnAdd.setEnabled(true);
 				btnUpdate.setEnabled(false);
 				btnDelete.setEnabled(false);
-				txtName.requestFocus();
+				txtFirstName.requestFocus();
 			}
 		});
 		pButton.add(btnClear);		
@@ -448,7 +427,7 @@ public class PCustomer extends JPanel {
 		JButton btnExport = new JButton("Export");
 		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new DbToCustomerCSV();
+				new DbToSellerCSV();
 			}
 		});
 		btnExport.setBounds(609, 11, 89, 31);
@@ -463,7 +442,8 @@ public class PCustomer extends JPanel {
 	}
 	private void clearControls() {
 		txtId.setText("");
-		txtName.setText("");
+		txtFirstName.setText("");
+		txtLastName.setText("");
 		txtGender.setText("");
 		txtPhone.setText("");
 		txtAddress.setText("");

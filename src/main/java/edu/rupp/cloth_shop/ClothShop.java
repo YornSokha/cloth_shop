@@ -32,10 +32,12 @@ import javax.swing.JTabbedPane;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import edu.rupp.cloth_shop.category.PCategory;
 import edu.rupp.cloth_shop.customer.PCustomer;
 import edu.rupp.cloth_shop.report.PSaleDetailReport;
 import edu.rupp.cloth_shop.report.PSaleReport;
 import edu.rupp.cloth_shop.sale.PSale;
+import edu.rupp.cloth_shop.seller.PSeller;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuBar;
@@ -69,6 +71,7 @@ public class ClothShop extends JFrame {
 	 * Create the frame.
 	 */
 	public ClothShop() {
+		setExtendedState(Frame.MAXIMIZED_BOTH);
 //		JFrame.setDefaultLookAndFeelDecorated(true);
 		initConponent();
 		welcomeImage();
@@ -105,10 +108,8 @@ public class ClothShop extends JFrame {
 	}
 
 	private void initConponent() {
-		// TODO Auto-generated method stub
-		setExtendedState(Frame.MAXIMIZED_BOTH);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 849, 470);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -209,9 +210,9 @@ public class ClothShop extends JFrame {
 								jtab.setSelectedComponent(customer);
 							}else if(lastPath.equalsIgnoreCase("Product")) {
 								
-						            PProduct product = new PProduct();
-                                    jtab.addTab("Product", product);
-                                    jtab.setSelectedComponent(product);								
+//						            PProduct product = new PProduct();
+//                                    jtab.addTab("Product", product);
+//                                    jtab.setSelectedComponent(product);								
 							}else if(lastPath.equalsIgnoreCase("Category")) {
 								
                                     PCategory category = new PCategory();

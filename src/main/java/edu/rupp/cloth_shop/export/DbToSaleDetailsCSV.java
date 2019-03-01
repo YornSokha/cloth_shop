@@ -49,7 +49,7 @@ public class DbToSaleDetailsCSV {
             fw.append(',');
             fw.append('\n');
             int i = 1;
-            float cost, price;
+            float cost, price, totalCost = 0, total = 0;
             while (rs.next()) {
                 fw.append("" + i++);
                 fw.append(',');
@@ -67,11 +67,32 @@ public class DbToSaleDetailsCSV {
                 fw.append(',');
                 fw.append("$ " + (price = rs.getFloat(7)));
                 fw.append(',');
-                fw.append("$ " + cost * price);
+                fw.append("$ " + cost * rs.getInt(4));
+                totalCost += cost * rs.getInt(4);
                 fw.append(',');
-                fw.append("$ " + ((cost * price) - (cost * price * rs.getFloat(5))/100));
+                fw.append("$ " + ((rs.getInt(4) * price) - (rs.getInt(4) * price * rs.getFloat(5))/100));
+                total = ((rs.getInt(4) * price) - (rs.getInt(4) * price * rs.getFloat(5))/100);
                 fw.append('\n');
                }
+            for(int j = 0; j < 7; j++) {
+            	fw.append("");        
+                fw.append(',');	
+            }
+            
+            fw.append("Total");
+            fw.append(',');
+            fw.append("$ " + total);
+            fw.append(',');
+            fw.append("$ " + totalCost);
+            fw.append(',');
+            fw.append('\n');
+            for(int j = 0; j < 8; j++) {
+            	fw.append("");        
+                fw.append(',');	
+            }
+            fw.append("Profit");
+            fw.append(',');
+            fw.append("$ " + (total - totalCost));
             fw.flush();
             fw.close();
             conn.close();
